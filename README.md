@@ -10,3 +10,5 @@ first run:
 - open package manage console (Tools>Nuget Package Manager>Package Manage Console)
 - run "Add-Migration InitialDatabase"
 - run "Update-Database"
+
+link db diagram: https://dbdiagram.io/d/64e3975f02bd1c4a5e24a29c
