@@ -10,5 +10,6 @@ namespace BEPizza.Models
         public int ID { get; set; }
         public string TypeID { get; set; }
         public string TypeName { get; set; }
+        public ICollection<User> Users { get; } = new List<User>();
     }
 }
