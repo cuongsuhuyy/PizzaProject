@@ -67,6 +67,8 @@ namespace BEPizza.Models
         public DbSet<SizePizza> SizePizza { get; set; }
         public DbSet<TypeUser> TypeUser { get; set; }
         public DbSet<User> User { get; set; }
+        public DbSet<Order> Order { get; set; }
+        public DbSet<OrderDetails> OrderDetails { get; set; }
 
     }
 }
