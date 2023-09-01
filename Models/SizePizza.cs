@@ -10,5 +10,6 @@ namespace BEPizza.Models
         public int ID { get; set; }
         public string SizeID { get; set; }
         public string SizeName { get; set; }
+        public ICollection<Pizza> Pizzas { get; } = new List<Pizza>();
     }
 }
