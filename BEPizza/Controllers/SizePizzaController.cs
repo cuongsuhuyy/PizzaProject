@@ -1,4 +1,6 @@
 ﻿using BEPizza.Models;
+using BEPizza.Services.Implementations;
+using BEPizza.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,64 +11,63 @@ namespace BEPizza.Controllers
     [ApiController]
     public class SizePizzaController : ControllerBase
     {
-        private readonly PizzaContext _dbContext;
+        private readonly ISizePizzaService _sizePizzaService;
 
-        public SizePizzaController(PizzaContext dbContext)
+        public SizePizzaController(ISizePizzaService sizePizzaService)
         {
-            _dbContext = dbContext;
+            _sizePizzaService = sizePizzaService;
         }
 
         [HttpGet("[action]")]
-        public async Task<ActionResult<IEnumerable<SizePizza>>> GetAllSizePizza()
+        public ActionResult<SizePizza> GetAllSizePizza()
         {
-            if (_dbContext == null)
-            {
-                return NotFound();
-            }
-            return await _dbContext.SizePizza.ToListAsync();
+            var sizePizzaList = _sizePizzaService.GetAllSizePizza();
+            return Ok(sizePizzaList);
         }
 
         [HttpGet("[action]/{sizePizzaId}")]
-        public async Task<ActionResult<IEnumerable<SizePizza>>> GetSizePizzaById(string sizeId)
+        public ActionResult<SizePizza> GetSizePizzaById(string sizeId)
         {
-            if (_dbContext == null)
+            var sizePizza = _sizePizzaService.GetSizePizzaById(sizeId);
+            if (sizePizza == null) 
             {
                 return NotFound();
             }
-            return await _dbContext.SizePizza.Where(x => x.SizeID == sizeId).ToListAsync();
+
+            return Ok(sizePizza);
         }
 
         [HttpPost("[action]")]
-        public async Task<ActionResult<SizePizza>> InsertSizePizza(SizePizza sizePizza)
+        public IActionResult InsertSizePizza(SizePizza sizePizza)
         {
-            _dbContext.SizePizza.Add(sizePizza);
-            await _dbContext.SaveChangesAsync();
+            _sizePizzaService.AddSizePizza(sizePizza);
+            var url = Url.Action(nameof(GetSizePizzaById), new { sizeId = sizePizza.SizeID });
+            if (url == null)
+            {
+                return NoContent();
+            }
 
-            return Ok();
+            return Created(url, sizePizza);
         }
 
         [HttpDelete("[action]")]
-        public async Task<ActionResult<SizePizza>> DeleteSizePizzaById(string sizeId)
+        public IActionResult DeleteSizePizzaById(string sizeId)
         {
-            var listSizePizza = _dbContext.SizePizza.Where(x => x.SizeID == sizeId).ToList();
-            _dbContext.SizePizza.RemoveRange(listSizePizza);
-            await _dbContext.SaveChangesAsync();
-
-            return Ok();
+            _sizePizzaService.DeleteSizePizza(sizeId);
+            return NoContent();
         }
 
         [HttpPut("[action]")]
-        public async Task<ActionResult<SizePizza>> UpdateSizePizzaById(SizePizza sizePizza)
+        public IActionResult UpdateSizePizzaById(SizePizza sizePizza)
         {
-            var listSizePizza = _dbContext.SizePizza.Where(x => x.SizeID == sizePizza.SizeID).ToList();
-            foreach (var item in listSizePizza)
+            _sizePizzaService.UpdateSizePizza(sizePizza);
+            var url = Url.Action(nameof(GetSizePizzaById), new { sizeId = sizePizza.SizeID });
+            if (url == null)
             {
-                item.SizeName = sizePizza.SizeName;
+                return NoContent();
             }
-            _dbContext.SizePizza.UpdateRange(listSizePizza);
-            await _dbContext.SaveChangesAsync();
 
-            return Ok();
+            return Created(url, sizePizza);
         }
     }
 }
