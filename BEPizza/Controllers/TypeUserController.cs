@@ -1,4 +1,5 @@
 ﻿using BEPizza.Models;
+using BEPizza.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,64 +10,68 @@ namespace BEPizza.Controllers
     [ApiController]
     public class TypeUserController : ControllerBase
     {
-        private readonly PizzaContext _dbContext;
+        private readonly ITypeUserService _typeUserService;
 
-        public TypeUserController(PizzaContext dbContext)
+        public TypeUserController(ITypeUserService typeUserService)
         {
-            _dbContext = dbContext;
+            _typeUserService = typeUserService;
         }
 
         [HttpGet("[action]")]
-        public async Task<ActionResult<IEnumerable<TypeUser>>> GetAllTypeUser()
+        public ActionResult<TypeUser> GetAllTypeUser()
         {
-            if (_dbContext == null)
+            var typeUserList = _typeUserService.GetAllTypeUser();
+            if (typeUserList == null) 
             {
                 return NotFound();
             }
-            return await _dbContext.TypeUser.ToListAsync();
+
+            return Ok(typeUserList);
         }
 
         [HttpGet("[action]/{typeId}")]
-        public async Task<ActionResult<IEnumerable<TypeUser>>> GetTypeUserById(string typeId)
+        public ActionResult<TypeUser> GetTypeUserById(string typeId)
         {
-            if (_dbContext == null)
+            var typeUser = _typeUserService.GetTypeUserById(typeId);
+            if (typeUser == null) 
             {
                 return NotFound();
             }
-            return await _dbContext.TypeUser.Where(x => x.TypeID == typeId).ToListAsync();
+
+            return Ok(typeUser);
         }
 
         [HttpPost("[action]")]
-        public async Task<ActionResult<TypeUser>> InsertTypeUser(TypeUser typeUser)
+        public IActionResult InsertTypeUser(TypeUser typeUser)
         {
-            _dbContext.TypeUser.Add(typeUser);
-            await _dbContext.SaveChangesAsync();
+            _typeUserService.AddTypeUser(typeUser);
+            var url = Url.Action(nameof(GetTypeUserById), new { typeId = typeUser.TypeID });
+            if (url == null) 
+            {
+                return NoContent();
+            }
 
-            return Ok();
+            return Created(url, typeUser);
         }
 
         [HttpDelete("[action]")]
-        public async Task<ActionResult<TypeUser>> DeleteTypeUserById(string typeId)
+        public IActionResult DeleteTypeUserById(string typeId)
         {
-            var listTypeUser = _dbContext.TypeUser.Where(x => x.TypeID == typeId).ToList();
-            _dbContext.TypeUser.RemoveRange(listTypeUser);
-            await _dbContext.SaveChangesAsync();
-
-            return Ok();
+            _typeUserService.DeleteTypeUser(typeId);
+            return NoContent();
         }
 
         [HttpPut("[action]")]
-        public async Task<ActionResult<TypeUser>> UpdateTypeUserById(TypeUser typeUser)
+        public IActionResult UpdateTypeUserById(TypeUser typeUser)
         {
-            var listTypeUser = _dbContext.TypeUser.Where(x => x.TypeID == typeUser.TypeID).ToList();
-            foreach (var item in listTypeUser)
+            _typeUserService.UpdateTypeUser(typeUser);
+            var url = Url.Action(nameof(GetTypeUserById), new { typeId = typeUser.TypeID });
+            if (url != null)
             {
-                item.TypeName = typeUser.TypeName;
+                return NoContent();
             }
-            _dbContext.TypeUser.UpdateRange(listTypeUser);
-            await _dbContext.SaveChangesAsync();
 
-            return Ok();
+            return Created(url, typeUser);
         }
     }
 }

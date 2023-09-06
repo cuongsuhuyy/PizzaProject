@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BEPizza.Models
 {
@@ -40,11 +41,11 @@ namespace BEPizza.Models
                 new Pizza { ID = 11, PizzaID = RandomString(), PizzaName = "Pizza Sau Rieng", Price = 100000 , UnitPrice = "VND" }
                 );
 
-            modelBuilder.Entity<User>().HasData(
-                new User { ID = 1, UserID = RandomString(), UserName = "Test01", Password = "Test01", Email = "Test01@gmail.com", PhoneNumber = "0123456789" },
-                new User { ID = 2, UserID = RandomString(), UserName = "Test02", Password = "Test02", Email = "Test02@gmail.com", PhoneNumber = "0231564987" },
-                new User { ID = 3, UserID = RandomString(), UserName = "Test03", Password = "Test03", Email = "Test03@gmail.com", PhoneNumber = "0948567123" }
-                );
+            //modelBuilder.Entity<User>().HasData(
+            //    new User { ID = 1, UserID = RandomString(), UserName = "Test01", Password = "Test01", Email = "Test01@gmail.com", PhoneNumber = "0123456789" },
+            //    new User { ID = 2, UserID = RandomString(), UserName = "Test02", Password = "Test02", Email = "Test02@gmail.com", PhoneNumber = "0231564987" },
+            //    new User { ID = 3, UserID = RandomString(), UserName = "Test03", Password = "Test03", Email = "Test03@gmail.com", PhoneNumber = "0948567123" }
+            //    );
 
             modelBuilder.Entity<TypeUser>().HasData(
                 new TypeUser { ID = 1, TypeID = RandomString(), TypeName = "Guest" },

@@ -1,4 +1,5 @@
 ﻿using BEPizza.Models;
+using BEPizza.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,68 +10,70 @@ namespace BEPizza.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly PizzaContext _dbContext;
+        private readonly IUserService _userService;
 
-        public UserController(PizzaContext dbContext)
+        public UserController(IUserService userService)
         {
-            _dbContext = dbContext;
+            _userService = userService;
         }
 
         [HttpGet("[action]")]
-        public async Task<ActionResult<IEnumerable<User>>> GetAllUser()
+        public ActionResult<User> GetAllUser()
         {
-            if (_dbContext == null)
+            var listUser = _userService.GetAllUser();
+            if (listUser == null)
             {
                 return NotFound();
             }
-            return await _dbContext.User.ToListAsync();
+            return Ok(listUser);
         }
 
         [HttpGet("[action]/{userId}")]
-        public async Task<ActionResult<IEnumerable<User>>> GetUserById(string userId)
+        public ActionResult<User> GetUserById(string userId)
         {
-            if (_dbContext == null)
+            var user = _userService.GetUserById(userId);
+            if (user == null) 
             {
                 return NotFound();
             }
-            return await _dbContext.User.Where(x => x.UserID == userId).ToListAsync();
+            return Ok(user);
         }
 
         [HttpPost("[action]")]
-        public async Task<ActionResult<User>> InsertUser(User user)
+        public IActionResult InsertUser(User user)
         {
-            _dbContext.User.Add(user);
-            await _dbContext.SaveChangesAsync();
+            _userService.AddUser(user);
 
-            return Ok();
+            // Generate the URL for the newly created resource (user)
+            var url = Url.Action(nameof(GetUserById), new { userId = user.UserID });
+
+            if (url == null) 
+            {
+                return NoContent();
+            }
+            // Return a response with a 201 Created status code and the Location header set
+            return Created(url, user);
         }
 
         [HttpDelete("[action]")]
-        public async Task<ActionResult<User>> DeleteUserById(string userId)
+        public IActionResult DeleteUserById(string userId)
         {
-            var listUser = _dbContext.User.Where(x => x.UserID == userId).ToList();
-            _dbContext.User.RemoveRange(listUser);
-            await _dbContext.SaveChangesAsync();
-
-            return Ok();
+            _userService.DeleteUser(userId);
+            return NoContent();
         }
 
         [HttpPut("[action]")]
-        public async Task<ActionResult<User>> UpdateUserById(User user)
+        public IActionResult UpdateUserById(User user)
         {
-            var listUser = _dbContext.User.Where(x => x.UserID == user.UserID).ToList();
-            foreach (var item in listUser)
-            {
-                item.UserName = user.UserName;
-                item.Password = user.Password;
-                item.PhoneNumber = user.PhoneNumber;
-                item.Email = user.Email;
-                item.TypeID = user.TypeID;
-            }
-            _dbContext.User.UpdateRange(listUser);
-            await _dbContext.SaveChangesAsync();
+            _userService.UpdateUser(user);
+            var url = Url.Action(nameof(GetUserById), new { userId = user.UserID });
 
-            return Ok();
+            if (url == null) 
+            {
+                return NoContent();
+            }
+
+            return Created(url, user);
         }
     }
 }
