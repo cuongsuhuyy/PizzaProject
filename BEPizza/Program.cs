@@ -26,6 +26,8 @@ builder.Services.AddScoped<ISizePizzaService, SizePizzaService>();
 builder.Services.AddScoped<ISizePizzaRepository, SizePizzaRepository>();
 builder.Services.AddScoped<IPizzaRepository, PizzaRepository>();
 builder.Services.AddScoped<IPizzaService, PizzaService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();
 
