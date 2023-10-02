@@ -1,6 +1,7 @@
 ﻿using BEPizza.Models;
 using BEPizza.Services.Implementations;
 using BEPizza.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace BEPizza.Controllers
 {
     [Route("api/v1/")]
-    [ApiController]
+    [ApiController]    
     public class PizzaController : ControllerBase
     {
         private readonly IPizzaService _pizzaService;
@@ -20,8 +21,12 @@ namespace BEPizza.Controllers
         }
 
         [HttpGet("[action]")]
+        [Authorize]
         public ActionResult<Pizza> GetAllPizza()
         {
+            var currentUser = HttpContext.User;
+            var sub = currentUser.Claims.ToList();
+
             var pizzaList = _pizzaService.GetAllPizza();
             return Ok(pizzaList);
         }
