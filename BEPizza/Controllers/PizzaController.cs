@@ -1,4 +1,6 @@
 ﻿using BEPizza.Models;
+using BEPizza.Services.Implementations;
+using BEPizza.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,67 +12,63 @@ namespace BEPizza.Controllers
     [ApiController]
     public class PizzaController : ControllerBase
     {
-        private readonly PizzaContext _dbContext;
+        private readonly IPizzaService _pizzaService;
 
-        public PizzaController(PizzaContext dbContext)
+        public PizzaController(IPizzaService pizzaService)
         {
-            _dbContext = dbContext;
+            _pizzaService = pizzaService;
         }
 
         [HttpGet("[action]")]
-        public async Task<ActionResult<IEnumerable<Pizza>>> GetAllPizza()
+        public ActionResult<Pizza> GetAllPizza()
         {
-            if (_dbContext == null)
-            {
-                return NotFound();
-            }
-            return await _dbContext.Pizza.ToListAsync();
+            var pizzaList = _pizzaService.GetAllPizza();
+            return Ok(pizzaList);
         }
 
         [HttpGet("[action]/{pizzaId}")]
-        public async Task<ActionResult<IEnumerable<Pizza>>> GetPizzaById(string pizzaId)
+        public ActionResult<Pizza> GetPizzaById(string pizzaId)
         {
-            if (_dbContext == null)
+            var pizza = _pizzaService.GetPizzaById(pizzaId);
+            if (pizza == null) 
             {
                 return NotFound();
             }
-            return await _dbContext.Pizza.Where(x => x.PizzaID == pizzaId).ToListAsync();
+
+            return Ok(pizza);
         }
 
         [HttpPost("[action]")]
-        public async Task<ActionResult<Pizza>> InsertPizza(Pizza pizza)
+        public IActionResult InsertPizza(Pizza pizza)
         {
-            _dbContext.Pizza.Add(pizza);
-            await _dbContext.SaveChangesAsync();
+            _pizzaService.AddPizza(pizza);
+            var url = Url.Action(nameof(GetPizzaById), new {pizzaId = pizza.PizzaID });
+            if (url == null)
+            {
+                return NoContent();
+            }
 
-            return Ok();
+            return Created(url, pizza);
         }
 
         [HttpDelete("[action]")]
-        public async Task<ActionResult<Pizza>> DeletePizzaById(string pizzaId)
+        public IActionResult DeletePizzaById(string pizzaId)
         {
-            var listPizza = _dbContext.Pizza.Where(x => x.PizzaID == pizzaId).ToList();
-            _dbContext.Pizza.RemoveRange(listPizza);
-            await _dbContext.SaveChangesAsync();
-
-            return Ok();
+            _pizzaService.DeletePizza(pizzaId);
+            return NoContent();
         }
 
         [HttpPut("[action]")]
-        public async Task<ActionResult<Pizza>> UpdatePizzaById(Pizza pizza)
+        public IActionResult UpdatePizzaById(Pizza pizza)
         {
-            var listPizza = _dbContext.Pizza.Where(x => x.PizzaID == pizza.PizzaID).ToList();
-            foreach (var item in listPizza) 
+            _pizzaService.UpdatePizza(pizza);
+            var url = Url.Action(nameof(GetPizzaById), new { pizzaId = pizza.PizzaID });
+            if (url == null) 
             {
-                item.PizzaID = pizza.PizzaID;
-                item.PizzaName = pizza.PizzaName;
-                item.Description = pizza.Description;
-                item.Price = pizza.Price;
+                return NoContent();
             }
-            _dbContext.Pizza.UpdateRange(listPizza);
-            await _dbContext.SaveChangesAsync();
 
-            return Ok();
+            return Created(url, pizza);
         }
     }
 }
